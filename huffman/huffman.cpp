@@ -13,23 +13,17 @@ struct Tree {
     int parent;
 };
 
-int frequency[256];
-Forest forest[256];
-Tree tree[512];
-int tree_size;
-int forest_size;
-
 std::pair<int, int> getMinsIdx(Forest f[], int s) {
     Forest wm = {
-            .weight = 0,
-            .root = 0,
+        .weight = 0,
+        .root = 0,
     };
 
     for (int i = 0; i < s; i++) {
         if (wm.weight < f[i].weight)
             wm = {
-                    .weight = f[i].weight,
-                    .root = i
+                .weight = f[i].weight,
+                .root = i
             };
     }
     Forest a = wm, b = wm;
@@ -37,22 +31,38 @@ std::pair<int, int> getMinsIdx(Forest f[], int s) {
     for (int i = 0; i < s; i++) {
         if (a.weight > f[i].weight) {
             a = {
-                    .weight = f[i].weight,
-                    .root = i
+                .weight = f[i].weight,
+                .root = i
             };
         }
     }
 
     for (int i = 0; i < s; i++) {
-        if (a.weight < f[i].weight && f[i].weight < b.weight) {
+        if (f[i].weight <= b.weight && a.root != i) {
             b = {
-                    .weight = f[i].weight,
-                    .root = i
+                .weight = f[i].weight,
+                .root = i
             };
         }
     }
     return {a.root, b.root};
 }
+
+void getKeys(Tree t[], int ks[], int p, int k) {
+    if (t[p].left == t[p].right == -1) {
+        ks[p] = k;
+    } else if (t[p].left != -1) {
+        getKeys(t, ks, t[p].left, k << 1);
+    } else if (t[p].right != -1) {
+        getKeys(t, ks, t[p].right, k << 1 + 1);
+    }
+}
+
+int frequency[256];
+Forest forest[256];
+Tree tree[512];
+int tree_size;
+int forest_size;
 
 int main() {
     f = fopen("./input.txt", "rb");
@@ -62,24 +72,22 @@ int main() {
         frequency[ch]++;
     }
 
-    int i = 0;
     for (const auto &item: frequency) {
         if (item > 0) {
-            forest[i] = {
-                    .weight = item,
-                    .root = i
+            forest[forest_size] = {
+                .weight = item,
+                .root = forest_size
             };
 
-            i++;
             forest_size++;
         }
     }
 
     for (auto &item: tree) {
         item = {
-                .left = -1,
-                .right = -1,
-                .parent = -1,
+            .left = -1,
+            .right = -1,
+            .parent = -1,
         };
     }
 
@@ -91,24 +99,24 @@ int main() {
 
         int tr = tree_size - 1;
         Forest ft = {
-                .weight = fa.weight + fb.weight,
-                .root = tr
+            .weight = fa.weight + fb.weight,
+            .root = tr
         };
 
         tree[fa.root] = {
-                .left = tree[fa.root].left,
-                .right = tree[fa.root].right,
-                .parent = tr
+            .left = tree[fa.root].left,
+            .right = tree[fa.root].right,
+            .parent = tr
         };
         tree[fb.root] = {
-                .left = tree[fb.root].left,
-                .right = tree[fb.root].right,
-                .parent = tr
+            .left = tree[fb.root].left,
+            .right = tree[fb.root].right,
+            .parent = tr
         };
         tree[tr] = {
-                .left = fa.root,
-                .right = fb.root,
-                .parent = tree[tr].parent
+            .left = fa.root,
+            .right = fb.root,
+            .parent = tree[tr].parent
         };
 
 
@@ -124,7 +132,7 @@ int main() {
         forest_size--;
     }
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 12; i++) {
         std::cout << tree[i].left << ' ' << tree[i].right << ' ' << tree[i].parent << '\n';
     }
 }
