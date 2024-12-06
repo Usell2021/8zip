@@ -75,7 +75,7 @@ void getKeys(Tree t[], int p, ull k, ull l) {
 }
 
 int main() {
-    inputFile = fopen("./input.txt", "rb");
+    inputFile = fopen("./input", "rb");
     ull ch;
 
     while (fscanf(inputFile, "%c", &ch) != -1) {
@@ -189,7 +189,7 @@ int main() {
     long file_size = ftell(archiveFile);
     rewind(archiveFile);
 
-    auto outputFile = fopen("./output.txt", "w+");\
+    auto outputFile = fopen("./output", "w+");\
 
     while (fscanf(archiveFile, "%c", &ch) != -1) {
         long currect_pos = ftell(archiveFile);
