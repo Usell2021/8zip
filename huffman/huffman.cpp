@@ -1,5 +1,8 @@
 #include <bitset>
 #include <iostream>
+#include <valarray>
+
+typedef unsigned long long ull;
 
 FILE *inputFile;
 
@@ -57,9 +60,9 @@ Forest forest[256];
 Tree tree[512];
 int tree_size;
 int forest_size;
-std::pair<char, char> keys[256];
+std::pair<ull, ull> keys[256];
 
-void getKeys(Tree t[], int p, char k, char l) {
+void getKeys(Tree t[], int p, ull k, ull l) {
     if (t[p].left == t[p].right) {
         keys[tree[p].symbol].first = k;
         keys[tree[p].symbol].second = l;
@@ -73,7 +76,7 @@ void getKeys(Tree t[], int p, char k, char l) {
 
 int main() {
     inputFile = fopen("./input.txt", "rb");
-    unsigned char ch;
+    ull ch;
 
     while (fscanf(inputFile, "%c", &ch) != -1) {
         frequency[ch]++;
@@ -97,7 +100,7 @@ int main() {
                 .left = -1,
                 .right = -1,
                 .parent = -1,
-                .symbol = -1,
+                .symbol = 0,
         };
     }
 
@@ -147,19 +150,22 @@ int main() {
     getKeys(tree, tree_size - 1, 0, 0);
 
     rewind(inputFile);
-    auto outputFile = fopen("./output.txt", "w+");
-    char byte = 0, length = 0;
+    auto archiveFile = fopen("./archive.zig", "w+");
+    ull byte = 0, length = 0;
     while (fscanf(inputFile, "%c", &ch) != -1) {
-        char code = keys[ch].first;
-        char mask = keys[ch].second;
-        for (int i = 0; i < 8; i++) {
-            if (mask & 128) {
+        ull code = keys[ch].first;
+        ull mask = keys[ch].second;
+        ull lastbit = pow(2, 63);
+        //std::cout << std::bitset<64>(code) << '\n' << std::bitset<64>(mask) << '\n' << std::bitset<64>(lastbit);
+        //return 0;
+        for (int i = 0; i < 64; i++) {
+            if (mask & lastbit) {
                 if (length == 8) {
-                    fprintf(outputFile, "%c", byte);
+                    fprintf(archiveFile, "%c", byte);
                     byte = 0, length = 0;
                 }
                 byte <<= 1;
-                if (code & 128) {
+                if (code & lastbit) {
                     byte++;
                 }
                 length++;
@@ -169,20 +175,23 @@ int main() {
         }
     }
     if (length > 0) {
-        fprintf(outputFile, "%c", byte);
+        fprintf(archiveFile, "%c", byte);
     }
-    fclose(outputFile);
+    fclose(archiveFile);
 
-    auto output = fopen("./output.txt", "rb");\
+
+    archiveFile = fopen("./archive.zig", "rb");\
 
     auto knot = tree[tree_size - 1];
     int len = 8;
-    fseek(output, 0, SEEK_END);
-    long file_size = ftell(output);
-    rewind(output);
+    fseek(archiveFile, 0, SEEK_END);
+    long file_size = ftell(archiveFile);
+    rewind(archiveFile);
 
-    while (fscanf(output, "%c", &ch) != -1) {
-        long currect_pos = ftell(output);
+    auto outputFile = fopen("./outputFile.txt", "w+");\
+
+    while (fscanf(archiveFile, "%c", &ch) != -1) {
+        long currect_pos = ftell(archiveFile);
         if (currect_pos == file_size) {
             len = length;
             ch <<= 8 - len;
@@ -190,7 +199,8 @@ int main() {
             len = 8;
         while (len != 0) {
             if (knot.right == knot.left) {
-                std::cout << knot.symbol;
+                //std::cout << knot.symbol;
+                fprintf(outputFile, "%c", knot.symbol);
                 knot = tree[tree_size - 1];
             }
             if (ch & 128) {
@@ -202,7 +212,8 @@ int main() {
             len--;
         }
     }
-    std::cout << knot.symbol;
+    //std::cout << knot.symbol;
+    fprintf(outputFile, "%c", knot.symbol);
 
 
     std::cout << "\nnorm";
