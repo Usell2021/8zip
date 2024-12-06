@@ -179,6 +179,7 @@ int main() {
     }
     fclose(archiveFile);
 
+    std::cout << "archived\n";
 
     archiveFile = fopen("./archive.zig", "rb");\
 
@@ -214,7 +215,8 @@ int main() {
     }
     //std::cout << knot.symbol;
     fprintf(outputFile, "%c", knot.symbol);
+    fclose(archiveFile);
+    fclose(outputFile);
 
-
-    std::cout << "\nnorm";
+    std::cout << "unarchived\n";
 }

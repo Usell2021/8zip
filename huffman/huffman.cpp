@@ -179,6 +179,7 @@ int main() {
     }
     fclose(archiveFile);
 
+    std::cout << "archived\n";
 
     archiveFile = fopen("./archive.zig", "rb");\
 
@@ -188,7 +189,7 @@ int main() {
     long file_size = ftell(archiveFile);
     rewind(archiveFile);
 
-    auto outputFile = fopen("./outputFile.txt", "w+");\
+    auto outputFile = fopen("./output.txt", "w+");\
 
     while (fscanf(archiveFile, "%c", &ch) != -1) {
         long currect_pos = ftell(archiveFile);
@@ -214,7 +215,8 @@ int main() {
     }
     //std::cout << knot.symbol;
     fprintf(outputFile, "%c", knot.symbol);
+    fclose(archiveFile);
+    fclose(outputFile);
 
-
-    std::cout << "\nnorm";
+    std::cout << "unarchived\n";
 }
