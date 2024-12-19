@@ -1,23 +1,30 @@
 #include <bitset>
 #include <iostream>
-#include <valarray>
+#include <string>
 
 typedef unsigned long long ull;
 
 FILE *inputFile;
 
 struct Forest {
-    int weight;
+    ull weight;
     int root;
-    char symbol;
+    unsigned char symbol;
 };
 
 struct Tree {
     int left;
     int right;
     int parent;
-    char symbol;
+    unsigned char symbol;
 };
+
+ull frequency[256];
+Forest forest[256];
+Tree tree[512];
+int tree_size;
+int forest_size;
+std::pair<ull, ull> keys[256];
 
 std::pair<int, int> getMinsIdx(Forest f[], int s) {
     Forest wm = {
@@ -54,14 +61,6 @@ std::pair<int, int> getMinsIdx(Forest f[], int s) {
     return {a.root, b.root};
 }
 
-
-int frequency[256];
-Forest forest[256];
-Tree tree[512];
-int tree_size;
-int forest_size;
-std::pair<ull, ull> keys[256];
-
 void getKeys(Tree t[], int p, ull k, ull l) {
     if (t[p].left == t[p].right) {
         keys[tree[p].symbol].first = k;
@@ -74,7 +73,7 @@ void getKeys(Tree t[], int p, ull k, ull l) {
     }
 }
 
-int main() {
+unsigned char archive() {
     inputFile = fopen("./input", "rb");
     ull ch;
 
@@ -88,7 +87,7 @@ int main() {
             forest[forest_size] = {
                     .weight = item,
                     .root = forest_size,
-                    .symbol = char(i),
+                    .symbol = i,
             };
 
             forest_size++;
@@ -150,12 +149,13 @@ int main() {
     getKeys(tree, tree_size - 1, 0, 0);
 
     rewind(inputFile);
-    auto archiveFile = fopen("./archive.zig", "w+");
-    ull byte = 0, length = 0;
+    auto archiveFile = fopen("./archive.zig", "wb");
+    unsigned char byte = 0, length = 0;
     while (fscanf(inputFile, "%c", &ch) != -1) {
         ull code = keys[ch].first;
         ull mask = keys[ch].second;
-        ull lastbit = pow(2, 63);
+        ull lastbit = 1;
+        lastbit <<= 63;
         //std::cout << std::bitset<64>(code) << '\n' << std::bitset<64>(mask) << '\n' << std::bitset<64>(lastbit);
         //return 0;
         for (int i = 0; i < 64; i++) {
@@ -180,16 +180,21 @@ int main() {
     fclose(archiveFile);
 
     std::cout << "archived\n";
+    return length;
+}
 
-    archiveFile = fopen("./archive.zig", "rb");\
+void unarchive(unsigned char length) {
+    auto archiveFile = fopen("./archive.zig", "rb");
 
     auto knot = tree[tree_size - 1];
-    int len = 8;
+    ull len = 8;
     fseek(archiveFile, 0, SEEK_END);
     long file_size = ftell(archiveFile);
     rewind(archiveFile);
 
-    auto outputFile = fopen("./output", "w+");\
+    auto outputFile = fopen("./output", "wb");\
+
+    ull ch;
 
     while (fscanf(archiveFile, "%c", &ch) != -1) {
         long currect_pos = ftell(archiveFile);
@@ -218,5 +223,12 @@ int main() {
     fclose(archiveFile);
     fclose(outputFile);
 
-    std::cout << "unarchived\n";
+    std::cout << "unarchived\r";
+}
+
+int main() {
+
+    auto length = archive();
+    unarchive(length);
+
 }
