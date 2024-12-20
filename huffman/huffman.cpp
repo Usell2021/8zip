@@ -1,5 +1,6 @@
 #include <bitset>
 #include <iostream>
+#include <string.h>
 #include <string>
 
 typedef unsigned long long ull;
@@ -73,8 +74,8 @@ void getKeys(Tree t[], int p, ull k, ull l) {
     }
 }
 
-unsigned char archive() {
-    inputFile = fopen("./input", "rb");
+unsigned char archive(char archiveName[], char fileName[]) {
+    inputFile = fopen(fileName, "rb");
     ull ch;
 
     while (fscanf(inputFile, "%c", &ch) != -1) {
@@ -149,15 +150,24 @@ unsigned char archive() {
     getKeys(tree, tree_size - 1, 0, 0);
 
     rewind(inputFile);
-    auto archiveFile = fopen("./archive.zig", "wb");
+    auto archiveFile = fopen(archiveName, "wb");
+
+    fprintf(archiveFile, "%c\n", 0);
+    for (int i = 0; i < tree_size; ++i) {
+        auto t = tree[i];
+        fprintf(archiveFile, "%d %d %d %d\n", t.left, t.right, t.parent, t.symbol);
+    }
+
     unsigned char byte = 0, length = 0;
+
+
+
     while (fscanf(inputFile, "%c", &ch) != -1) {
         ull code = keys[ch].first;
         ull mask = keys[ch].second;
         ull lastbit = 1;
         lastbit <<= 63;
-        //std::cout << std::bitset<64>(code) << '\n' << std::bitset<64>(mask) << '\n' << std::bitset<64>(lastbit);
-        //return 0;
+
         for (int i = 0; i < 64; i++) {
             if (mask & lastbit) {
                 if (length == 8) {
@@ -177,24 +187,50 @@ unsigned char archive() {
     if (length > 0) {
         fprintf(archiveFile, "%c", byte);
     }
+
+    rewind(archiveFile);
+    fprintf(archiveFile, "%c",length);
     fclose(archiveFile);
+
+    for (int i = 0; i < tree_size; ++i) {
+        auto t = tree[i];
+        printf("%d %d %d %d\n", t.left, t.right, t.parent, t.symbol);
+    }
 
     std::cout << "archived\n";
     return length;
 }
 
-void unarchive(unsigned char length) {
-    auto archiveFile = fopen("./archive.zig", "rb");
+void unarchive(char archiveName[], char fileName[]) {
+    auto archiveFile = fopen(archiveName, "rb");
 
-    auto knot = tree[tree_size - 1];
     ull len = 8;
     fseek(archiveFile, 0, SEEK_END);
     long file_size = ftell(archiveFile);
     rewind(archiveFile);
 
-    auto outputFile = fopen("./output", "wb");\
+    unsigned char length;
+    fscanf(archiveFile, "%c[^\n]", &length);
+    /*printf("%d", length);*/
+    int tree_size = 0;
+    int l, r, p, s;
+    do {
+        fscanf(archiveFile, "%d %d %d %d[^\n]", &l, &r, &p, &s);
+        tree[tree_size] = {
+            .left = l,
+            .right = r,
+            .parent = p,
+            .symbol = s
+        };
 
-    ull ch;
+        /*printf("%d %d %d %d\n", l, r, p, s);*/
+        tree_size++;
+    } while (p != -1);
+    auto knot = tree[tree_size - 1];
+
+    fseek(archiveFile, 1, SEEK_CUR);
+    auto outputFile = fopen(fileName, "wb");\
+    unsigned char ch;
 
     while (fscanf(archiveFile, "%c", &ch) != -1) {
         long currect_pos = ftell(archiveFile);
@@ -205,7 +241,6 @@ void unarchive(unsigned char length) {
             len = 8;
         while (len != 0) {
             if (knot.right == knot.left) {
-                //std::cout << knot.symbol;
                 fprintf(outputFile, "%c", knot.symbol);
                 knot = tree[tree_size - 1];
             }
@@ -218,7 +253,7 @@ void unarchive(unsigned char length) {
             len--;
         }
     }
-    //std::cout << knot.symbol;
+
     fprintf(outputFile, "%c", knot.symbol);
     fclose(archiveFile);
     fclose(outputFile);
@@ -226,9 +261,11 @@ void unarchive(unsigned char length) {
     std::cout << "unarchived\r";
 }
 
-int main() {
-
-    auto length = archive();
-    unarchive(length);
-
+int main(int argc, char *argv[]) {
+    if (!strcmp("encode", argv[1])) {
+        archive(argv[2], argv[3]);
+    } else {
+        unarchive(argv[2], argv[3]);
+    }
 }
+
