@@ -1,7 +1,7 @@
 #include <bitset>
 #include <iostream>
 #include <string.h>
-#include <string>
+#include <filesystem>
 
 typedef unsigned long long ull;
 
@@ -254,8 +254,6 @@ void archive(char archiveName[], char fileName[]) {
     writeData(archiveFile, inputFile);
     fclose(inputFile);
     fclose(archiveFile);
-
-    std::cout << "archived\n";
 }
 
 void unarchive(char archiveName[], char fileName[]) {
@@ -274,16 +272,47 @@ void unarchive(char archiveName[], char fileName[]) {
 
     fclose(archiveFile);
     fclose(outputFile);
-
-    std::cout << "unarchived\r";
 }
 
 int main(int argc, char *argv[]) {
-    if (!strcmp("encode", argv[1])) {
-        archive(argv[2], argv[3]);
-    } else if (!strcmp("decode", argv[1])) {
-        unarchive(argv[2], argv[3]);
-    } else {
+    if (argc == 4) {
+        auto command = argv[1];
+        auto archName = argv[2];
+        auto fileName = argv[3];
+        if (!strcmp("encode", command)) {
+            if (std::filesystem::exists(archName)) {
+                printf("Archive with this name exist. Rewrite? [y/n]");
+                char ch;
+                scanf("%c", &ch);
+                if (ch == 'n')
+                    return 0;
+                remove(archName);
+            }
+            if (!std::filesystem::exists(fileName)) {
+                printf("File with this name does not exist.");
+                return 0;
+            }
+
+            archive(archName, fileName);
+            std::cout << "Archived\n";
+
+        } else if (!strcmp("decode", command)) {
+            if (!std::filesystem::exists(archName)) {
+                printf("Archive with this name does not exist.");
+                return 0;
+            }
+            if (std::filesystem::exists(fileName)) {
+                printf("File with this name exists. Rewrite? [y/n]");
+                char ch;
+                scanf("%c", &ch);
+                if (ch == 'n')
+                    return 0;
+                remove(fileName);
+            }
+
+            unarchive(archName, fileName);
+            std::cout << "Unarchived\n";
+        }
+    } else
         printf("Unknown command.");
-    }
 }
