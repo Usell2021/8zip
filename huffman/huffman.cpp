@@ -1,7 +1,7 @@
 #include <bitset>
 #include <iostream>
 #include <string.h>
-#include <filesystem>
+//#include <filesystem>
 
 typedef unsigned long long ull;
 
@@ -60,15 +60,17 @@ std::pair<int, int> getMinsIdx(Forest f[], int s) {
     return {a.root, b.root};
 }
 
-void getKeys(Tree t[], int p, ull k, ull l) {
+void getKeys(Tree t[], int p, ull k, ull m) {
     if (t[p].left == t[p].right) {
         keys[tree[p].symbol].first = k;
-        keys[tree[p].symbol].second = l;
+        if (m == 0)
+            m++;
+        keys[tree[p].symbol].second = m;
     } else if (t[p].left != -1) {
-        getKeys(t, t[p].left, k * 2, l * 2 + 1);
+        getKeys(t, t[p].left, k * 2, m * 2 + 1);
     }
     if (t[p].right != -1) {
-        getKeys(t, t[p].right, k * 2 + 1, l * 2 + 1);
+        getKeys(t, t[p].right, k * 2 + 1, m * 2 + 1);
     }
 }
 
@@ -98,6 +100,15 @@ void buildTree() {
     }
 
     tree_size = forest_size;
+    if (forest_size == 1) {
+        tree[0] = {
+            .left = -1,
+            .right = 1,
+            .parent = -1,
+            .symbol = forest[0].symbol
+        };
+    }
+
     while (forest_size > 1) {
         auto mins = getMinsIdx(forest, forest_size);
         auto fa = forest[mins.first], fb = forest[mins.second];
@@ -275,12 +286,13 @@ void unarchive(char archiveName[], char fileName[]) {
 }
 
 int main(int argc, char *argv[]) {
+
     if (argc == 4) {
         auto command = argv[1];
         auto archName = argv[2];
         auto fileName = argv[3];
         if (!strcmp("encode", command)) {
-            if (std::filesystem::exists(archName)) {
+            if (false /*std::filesystem::exists(archName)*/) {
                 printf("Archive with this name exist. Rewrite? [y/n]");
                 char ch;
                 scanf("%c", &ch);
@@ -288,7 +300,7 @@ int main(int argc, char *argv[]) {
                     return 0;
                 remove(archName);
             }
-            if (!std::filesystem::exists(fileName)) {
+            if (false /*!std::filesystem::exists(fileName)*/) {
                 printf("File with this name does not exist.");
                 return 0;
             }
@@ -297,11 +309,11 @@ int main(int argc, char *argv[]) {
             std::cout << "Archived\n";
 
         } else if (!strcmp("decode", command)) {
-            if (!std::filesystem::exists(archName)) {
+            if (false /*!std::filesystem::exists(archName)*/) {
                 printf("Archive with this name does not exist.");
                 return 0;
             }
-            if (std::filesystem::exists(fileName)) {
+            if (false /*std::filesystem::exists(fileName)*/) {
                 printf("File with this name exists. Rewrite? [y/n]");
                 char ch;
                 scanf("%c", &ch);
