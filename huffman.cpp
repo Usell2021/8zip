@@ -23,6 +23,7 @@ Forest forest[256];
 Tree tree[512];
 int tree_size;
 int forest_size;
+int frequency_size;
 std::pair<ull, ull> keys[256];
 
 std::pair<int, int> getMinsIdx() {
@@ -186,6 +187,8 @@ void writeData(FILE *archiveFile, FILE *inputFile) {
 void getFrequencies(FILE *inputFile) {
     unsigned char ch;
     while (fscanf(inputFile, "%c", &ch) != -1) {
+        if (frequency[ch] == 0)
+            frequency_size++;
         frequency[ch]++;
     }
 }
@@ -242,16 +245,39 @@ void encodeData(FILE *archiveFile, FILE *outputFile, ull fileSize, unsigned char
     fprintf(outputFile, "%c", node.symbol);
 }
 
+void writeFrequency(FILE * archiveFile) {
+    fprintf(archiveFile, "%c\n", 0); // reserve byte for last byte length
+    fprintf(archiveFile, "%c\n", frequency_size);
+    for (int i = 0; i < 256; ++i) {
+        if (frequency[i]) {
+            fprintf(archiveFile, "%d %llu\n", i, frequency[i]);
+        }
+    }
+}
+
+void readFrequency(FILE *archiveFile) {
+    unsigned char ch;
+    ull f;
+    if (frequency_size == 0)
+        frequency_size = 256;
+    for (int i = 0; i < frequency_size; ++i) {
+        fscanf(archiveFile, "%d %llu\n", &ch, &f);
+        frequency[ch] = f;
+    }
+}
+
 void archive(char archiveName[], char fileName[]) {
     auto inputFile = fopen(fileName, "rb");
     getFrequencies(inputFile);
 
     buildForest();
     buildTree();
+
     getKeys(tree, tree_size - 1, 0, 0);
 
     auto archiveFile = fopen(archiveName, "wb");
-    writeTree(archiveFile);
+
+    writeFrequency(archiveFile);
     writeData(archiveFile, inputFile);
     fclose(inputFile);
     fclose(archiveFile);
@@ -264,9 +290,15 @@ void unarchive(char archiveName[], char fileName[]) {
 
     // get last byte length
     unsigned char lastByteLen;
-    fscanf(archiveFile, "%c[^\n]", &lastByteLen);
+    fscanf(archiveFile, "%c\n", &lastByteLen);
+    fscanf(archiveFile, "%c\n", &frequency_size);
 
-    readTree(archiveFile);
+
+    //readTree(archiveFile);
+    readFrequency(archiveFile);
+
+    buildForest();
+    buildTree();
 
     auto outputFile = fopen(fileName, "wb");
     encodeData(archiveFile, outputFile, fileSize, lastByteLen);
@@ -282,7 +314,7 @@ int main(int argc, char *argv[]) {
         auto archName = argv[2];
         auto fileName = argv[3];
         if (!strcmp("encode", command)) {
-            if (false /*std::filesystem::exists(archName)*/) {
+            /*if (std::filesystem::exists(archName)) {
                 printf("Archive with this name exist. Rewrite? [y/n]");
                 char ch;
                 scanf("%c", &ch);
@@ -290,27 +322,27 @@ int main(int argc, char *argv[]) {
                     return 0;
                 remove(archName);
             }
-            if (false /*!std::filesystem::exists(fileName)*/) {
+            if (!std::filesystem::exists(fileName)) {
                 printf("File with this name does not exist.");
                 return 0;
-            }
+            }*/
 
             archive(archName, fileName);
-            std::cout << "Archived\n";
+            std::cout << " Archived\n";
 
         } else if (!strcmp("decode", command)) {
-            if (false /*!std::filesystem::exists(archName)*/) {
+            /*if (!std::filesystem::exists(archName)) {
                 printf("Archive with this name does not exist.");
                 return 0;
             }
-            if (false /*std::filesystem::exists(fileName)*/) {
+            if (std::filesystem::exists(fileName)) {
                 printf("File with this name exists. Rewrite? [y/n]");
                 char ch;
                 scanf("%c", &ch);
                 if (ch == 'n')
                     return 0;
                 remove(fileName);
-            }
+            }*/
 
             unarchive(archName, fileName);
             std::cout << "Unarchived\n";
