@@ -6,16 +6,16 @@
 typedef unsigned long long ull;
 
 struct Forest {
-    ull weight;
-    int root;
-    unsigned char symbol;
+    ull weight = 0;
+    int root = 0;
+    unsigned char symbol = 0;
 };
 
 struct Tree {
-    int left;
-    int right;
-    int parent;
-    unsigned char symbol;
+    int left = -1;
+    int right = -1;
+    int parent = -1;
+    unsigned char symbol = 0;
 };
 
 ull frequency[256];
@@ -25,40 +25,30 @@ int tree_size;
 int forest_size;
 std::pair<ull, ull> keys[256];
 
-std::pair<int, int> getMinsIdx(Forest f[], int s) {
+std::pair<int, int> getMinsIdx() {
     Forest wm = {
-        .weight = 0,
+        .weight = __LONG_LONG_MAX__,
         .root = 0,
     };
-
-    for (int i = 0; i < s; i++) {
-        if (wm.weight < f[i].weight)
-            wm = {
-                .weight = f[i].weight,
-                .root = i
-            };
-    }
     Forest a = wm, b = wm;
 
-    for (int i = 0; i < s; i++) {
-        if (a.weight > f[i].weight) {
+    for (int i = 0; i < forest_size; i++) {
+        if (a.weight > forest[i].weight) {
+            b = a;
             a = {
-                .weight = f[i].weight,
+                .weight = forest[i].weight,
                 .root = i
             };
-        }
-    }
-
-    for (int i = 0; i < s; i++) {
-        if (f[i].weight <= b.weight && a.root != i) {
+        } else if (b.weight > forest[i].weight && a.root != i) {
             b = {
-                .weight = f[i].weight,
+                .weight = forest[i].weight,
                 .root = i
             };
         }
     }
     return {a.root, b.root};
 }
+
 
 void getKeys(Tree t[], int p, ull k, ull m) {
     if (t[p].left == t[p].right) {
@@ -110,7 +100,7 @@ void buildTree() {
     }
 
     while (forest_size > 1) {
-        auto mins = getMinsIdx(forest, forest_size);
+        auto mins = getMinsIdx();
         auto fa = forest[mins.first], fb = forest[mins.second];
         tree_size++;
 
