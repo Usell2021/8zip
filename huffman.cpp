@@ -143,14 +143,6 @@ void buildTree() {
     }
 }
 
-void writeTree(FILE *archiveFile) {
-    fprintf(archiveFile, "%c\n", 0); // reserve byte for last byte length
-    for (int i = 0; i < tree_size; ++i) {
-        auto t = tree[i];
-        fprintf(archiveFile, "%d %d %d %d\n", t.left, t.right, t.parent, t.symbol);
-    }
-}
-
 void writeData(FILE *archiveFile, FILE *inputFile) {
     unsigned char byte = 0, length = 0, ch;
     rewind(inputFile);
@@ -199,22 +191,6 @@ ull getFileSize(FILE *archiveFile) {
     ull fileSize = ftell(archiveFile);
     rewind(archiveFile);
     return fileSize;
-}
-
-void readTree(FILE *archiveFile) {
-    int l, r, p, s;
-    do {
-        fscanf(archiveFile, "%d %d %d %d[^\n]", &l, &r, &p, &s);
-        tree[tree_size] = {
-            .left = l,
-            .right = r,
-            .parent = p,
-            .symbol = s
-        };
-
-        tree_size++;
-    } while (p != -1);
-    fseek(archiveFile, 1, SEEK_CUR);
 }
 
 void encodeData(FILE *archiveFile, FILE *outputFile, ull fileSize, unsigned char lastByteLen) {
@@ -294,7 +270,6 @@ void unarchive(char archiveName[], char fileName[]) {
     fscanf(archiveFile, "%c\n", &frequency_size);
 
 
-    //readTree(archiveFile);
     readFrequency(archiveFile);
 
     buildForest();
