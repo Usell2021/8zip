@@ -328,7 +328,7 @@ int main(int argc, char *argv[]) {
             }*/
 
             archive(archName, fileName);
-            std::cout << " Archived\n";
+            std::cout << "Archived\n";
 
         } else if (!strcmp("decode", command)) {
             /*if (!std::filesystem::exists(archName)) {
