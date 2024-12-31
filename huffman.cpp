@@ -141,6 +141,11 @@ void buildTree() {
 
         forest_size--;
     }
+
+    for (int i = 0; i < tree_size; ++i) {
+        auto t = tree[i];
+        printf("%d %d %d %d\n", t.left, t.right, t.parent, t.symbol);
+    }
 }
 
 void writeData(FILE *archiveFile, FILE *inputFile) {
@@ -268,7 +273,7 @@ void unarchive(char archiveName[], char fileName[]) {
     unsigned char lastByteLen;
     fscanf(archiveFile, "%c\n", &lastByteLen);
     fscanf(archiveFile, "%c\n", &frequency_size);
-
+    fseek(archiveFile, -1, SEEK_CUR);
 
     readFrequency(archiveFile);
 
