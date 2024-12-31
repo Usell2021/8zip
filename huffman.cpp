@@ -85,7 +85,7 @@ void buildTree() {
     if (forest_size == 1) {
         tree[0] = {
             .parent = 1,
-            .symbol = forest[0].symbol
+            .symbol = forest[0].symbol,
         };
         tree[1] = {
             .left = 0,
