@@ -51,17 +51,17 @@ std::pair<int, int> getMinsIdx() {
 }
 
 
-void getKeys(Tree t[], int p, ull k, ull m) {
-    if (t[p].left == t[p].right) {
+void getKeys(int p, ull k, ull m) {
+    if (tree[p].left == tree[p].right) {
         keys[tree[p].symbol].first = k;
         if (m == 0)
             m++;
         keys[tree[p].symbol].second = m;
-    } else if (t[p].left != -1) {
-        getKeys(t, t[p].left, k * 2, m * 2 + 1);
+    } else if (tree[p].left != -1) {
+        getKeys(tree[p].left, k * 2, m * 2 + 1);
     }
-    if (t[p].right != -1) {
-        getKeys(t, t[p].right, k * 2 + 1, m * 2 + 1);
+    if (tree[p].right != -1) {
+        getKeys(tree[p].right, k * 2 + 1, m * 2 + 1);
     }
 }
 
@@ -81,23 +81,16 @@ void buildForest() {
 }
 
 void buildTree() {
-    for (auto &item: tree) {
-        item = {
-            .left = -1,
-            .right = -1,
-            .parent = -1,
-            .symbol = 0,
-        };
-    }
-
     tree_size = forest_size;
     if (forest_size == 1) {
         tree[0] = {
-            .left = -1,
-            .right = 1,
-            .parent = -1,
+            .parent = 1,
             .symbol = forest[0].symbol
         };
+        tree[1] = {
+            .left = 0,
+        };
+        tree_size = 2;
     }
 
     while (forest_size > 1) {
@@ -141,11 +134,6 @@ void buildTree() {
 
         forest_size--;
     }
-
-    for (int i = 0; i < tree_size; ++i) {
-        auto t = tree[i];
-        printf("%d %d %d %d\n", t.left, t.right, t.parent, t.symbol);
-    }
 }
 
 void writeData(FILE *archiveFile, FILE *inputFile) {
@@ -173,7 +161,7 @@ void writeData(FILE *archiveFile, FILE *inputFile) {
             code <<= 1;
         }
     }
-    if (length > 0) {
+    if (length) {
         fprintf(archiveFile, "%c", byte);
     }
 
@@ -203,8 +191,8 @@ void encodeData(FILE *archiveFile, FILE *outputFile, ull fileSize, unsigned char
     unsigned char ch;
     ull curByteLen = 8;
     while (fscanf(archiveFile, "%c", &ch) != -1) {
-        long currect_pos = ftell(archiveFile);
-        if (currect_pos == fileSize) {
+        long curPos = ftell(archiveFile);
+        if (curPos == fileSize) {
             curByteLen = lastByteLen;
             ch <<= 8 - curByteLen;
         } else
@@ -226,7 +214,7 @@ void encodeData(FILE *archiveFile, FILE *outputFile, ull fileSize, unsigned char
     fprintf(outputFile, "%c", node.symbol);
 }
 
-void writeFrequency(FILE * archiveFile) {
+void writeFrequency(FILE *archiveFile) {
     fprintf(archiveFile, "%c\n", 0); // reserve byte for last byte length
     fprintf(archiveFile, "%c\n", frequency_size);
     for (int i = 0; i < 256; ++i) {
@@ -254,7 +242,7 @@ void archive(char archiveName[], char fileName[]) {
     buildForest();
     buildTree();
 
-    getKeys(tree, tree_size - 1, 0, 0);
+    getKeys(tree_size - 1, 0, 0);
 
     auto archiveFile = fopen(archiveName, "wb");
 
@@ -288,7 +276,6 @@ void unarchive(char archiveName[], char fileName[]) {
 }
 
 int main(int argc, char *argv[]) {
-
     if (argc == 4) {
         auto command = argv[1];
         auto archName = argv[2];
@@ -309,7 +296,6 @@ int main(int argc, char *argv[]) {
 
             archive(archName, fileName);
             std::cout << "Archived\n";
-
         } else if (!strcmp("decode", command)) {
             /*if (!std::filesystem::exists(archName)) {
                 printf("Archive with this name does not exist.");
